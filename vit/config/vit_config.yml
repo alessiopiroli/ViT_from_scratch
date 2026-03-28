@@ -6,7 +6,11 @@ IMG:
   patch_size: 16
 
 MODEL:
-  latent_size: 512
+  IMG_PATCHER:
+    latent_dim: 512
+  ViT_ENCODER:
+    n_heads: 4
+
 
 TRAINING:
   batch_size: 4
