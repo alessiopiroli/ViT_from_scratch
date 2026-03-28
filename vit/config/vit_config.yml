@@ -10,7 +10,10 @@ MODEL:
     latent_dim: 512
   ViT_ENCODER:
     n_heads: 4
-
+  ViT:
+    n_encoders: 12
+  HEAD:
+    n_classes: 37
 
 TRAINING:
   batch_size: 4
