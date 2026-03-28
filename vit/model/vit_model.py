@@ -1,5 +1,6 @@
-import torch.nn as nn
 import torch
+import torch.nn as nn
+
 
 class ImagePatcher(nn.Module):
     def __init__(self, cfg):
@@ -7,7 +8,7 @@ class ImagePatcher(nn.Module):
         self.cfg = cfg
         self.patch_size = self.cfg.IMG.patch_size
         self.n_patches = (self.cfg.IMG.img_size // self.patch_size) ** 2
-        self.lin_in = (self.patch_size ** 2) * 3
+        self.lin_in = (self.patch_size**2) * 3
         self.lin_out = self.cfg.MODEL.IMG_PATCHER.latent_dim
 
         self.unfold = nn.Unfold(kernel_size=self.cfg.IMG.patch_size, stride=self.cfg.IMG.patch_size)
@@ -21,9 +22,9 @@ class ImagePatcher(nn.Module):
         class_token = self.class_token.expand(x.shape[0], -1, -1)
         x = torch.cat([class_token, x], dim=-2)
         x = x + self.pos_embedding
-        
+
         return x
-    
+
 
 class AttentionHead(nn.Module):
     def __init__(self, cfg):
@@ -35,18 +36,18 @@ class AttentionHead(nn.Module):
         self.linear_query = nn.Linear(self.latent_dim, self.out_dim)
         self.linear_key = nn.Linear(self.latent_dim, self.out_dim)
         self.linear_value = nn.Linear(self.latent_dim, self.out_dim)
-    
+
     def forward(self, x):
         Q = self.linear_query(x)
         K = self.linear_key(x)
         V = self.linear_value(x)
 
-        attn = (Q @ torch.transpose(K, dim0=-2, dim1=-1)) / (self.out_dim ** 0.5)
+        attn = (Q @ torch.transpose(K, dim0=-2, dim1=-1)) / (self.out_dim**0.5)
         attn = torch.softmax(attn, dim=-1)
         attn = attn @ V
 
         return attn
-    
+
 
 class ViTEncoder(nn.Module):
     def __init__(self, cfg):
@@ -59,9 +60,7 @@ class ViTEncoder(nn.Module):
         self.attn_heads = nn.ModuleList([AttentionHead(self.cfg) for _ in range(self.n_heads)])
         self.attn_proj = nn.Linear(self.latent_dim, self.latent_dim)
         self.mlp = nn.Sequential(
-            nn.Linear(self.latent_dim, self.latent_dim*4),
-            nn.GELU(),
-            nn.Linear(4*self.latent_dim, self.latent_dim)
+            nn.Linear(self.latent_dim, self.latent_dim * 4), nn.GELU(), nn.Linear(4 * self.latent_dim, self.latent_dim)
         )
 
     def forward(self, x):
@@ -70,9 +69,9 @@ class ViTEncoder(nn.Module):
         x = self.attn_proj(attn_out) + x
         x_norm = self.layer_norm(x)
         x = self.mlp(x_norm) + x
-        
+
         return x
-    
+
 
 class ViT(nn.Module):
     def __init__(self, cfg):
@@ -87,7 +86,7 @@ class ViT(nn.Module):
             nn.LayerNorm(self.latent_dim),
             nn.Linear(self.latent_dim, self.latent_dim),
             nn.GELU(),
-            nn.Linear(self.latent_dim, self.cfg.MODEL.HEAD.n_classes)
+            nn.Linear(self.latent_dim, self.cfg.MODEL.HEAD.n_classes),
         )
 
     def forward(self, x):
