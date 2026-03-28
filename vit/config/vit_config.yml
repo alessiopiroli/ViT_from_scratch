@@ -4,3 +4,9 @@ DATA:
 IMG:
   img_size: 224
   patch_size: 16
+
+MODEL:
+  latent_size: 512
+
+TRAINING:
+  batch_size: 4
