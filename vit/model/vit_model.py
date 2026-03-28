@@ -21,10 +21,11 @@ class ImagePatcher(nn.Module):
         class_token = self.class_token.expand(x.shape[0], -1, -1)
         x = torch.cat([class_token, x], dim=-2)
         x = x + self.pos_embedding
+        
         return x
     
 
-class HeadAttention(nn.Module):
+class AttentionHead(nn.Module):
     def __init__(self, cfg):
         super().__init__()
         self.cfg = cfg
@@ -43,6 +44,7 @@ class HeadAttention(nn.Module):
         attn = (Q @ torch.transpose(K, dim0=-2, dim1=-1)) / (self.out_dim ** 0.5)
         attn = torch.softmax(attn, dim=-1)
         attn = attn @ V
+
         return attn
     
 
@@ -54,7 +56,7 @@ class ViTEncoder(nn.Module):
         self.latent_dim = self.cfg.MODEL.IMG_PATCHER.latent_dim
 
         self.layer_norm = nn.LayerNorm(self.latent_dim)
-        self.attn_heads = nn.ModuleList([HeadAttention(self.cfg) for _ in range(self.n_heads)])
+        self.attn_heads = nn.ModuleList([AttentionHead(self.cfg) for _ in range(self.n_heads)])
         self.attn_proj = nn.Linear(self.latent_dim, self.latent_dim)
         self.mlp = nn.Sequential(
             nn.Linear(self.latent_dim, self.latent_dim*4),
@@ -69,4 +71,30 @@ class ViTEncoder(nn.Module):
         x_norm = self.layer_norm(x)
         x = self.mlp(x_norm) + x
         
+        return x
+    
+
+class ViT(nn.Module):
+    def __init__(self, cfg):
+        super().__init__()
+        self.cfg = cfg
+        self.latent_dim = self.cfg.MODEL.IMG_PATCHER.latent_dim
+        self.n_encoders = self.cfg.MODEL.ViT.n_encoders
+
+        self.image_patcher = ImagePatcher(self.cfg)
+        self.encoders = nn.ModuleList([ViTEncoder(self.cfg) for _ in range(self.n_encoders)])
+        self.head = nn.Sequential(
+            nn.LayerNorm(self.latent_dim),
+            nn.Linear(self.latent_dim, self.latent_dim),
+            nn.GELU(),
+            nn.Linear(self.latent_dim, self.cfg.MODEL.HEAD.n_classes)
+        )
+
+    def forward(self, x):
+        x = self.image_patcher(x)
+        for encoder in self.encoders:
+            x = encoder(x)
+        x = x[:, 0, :]
+        x = self.head(x)
+
         return x
