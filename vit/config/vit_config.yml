@@ -1,0 +1,6 @@
+DATA:
+  root_dir: "data"
+
+IMG:
+  img_size: 224
+  patch_size: 16
