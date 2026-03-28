@@ -12,6 +12,7 @@ def config():
 def test_img_patcher(config, bs, n_ch, h, w):
     img_size = config.IMG.img_size
     patch_size = config.IMG.patch_size
+    n_patches = (img_size // patch_size) ** 2
     x = torch.randn(bs, n_ch, h, w)
     out = ImagePatcher(config)(x)
-    assert out.shape == (bs, (img_size // patch_size)**2, (patch_size**2)*n_ch)
+    assert out.shape == (bs, n_patches + 1, config.MODEL.latent_size)
