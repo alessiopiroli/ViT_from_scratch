@@ -1,3 +1,5 @@
 torch
 pytest
 easydict
+pyyaml
+numpy
