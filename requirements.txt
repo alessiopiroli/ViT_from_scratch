@@ -3,3 +3,4 @@ pytest
 easydict
 pyyaml
 numpy
+tensorboard
