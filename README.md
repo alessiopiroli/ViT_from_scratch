@@ -1,9 +1,8 @@
-# PointNet from scratch
-
+# ViT from scratch
 <div style="display: flex; gap: 5px;">
-    <a href="https://arxiv.org/abs/2010.11929">
-        <img src="https://img.shields.io/badge/Arxiv-Paper-green" alt="Arxiv Paper" />
-    </a>
+<a href="https://arxiv.org/abs/2010.11929">
+<img src="https://img.shields.io/badge/Arxiv-Paper-green" alt="Arxiv Paper" />
+</a>
 </div>
 
 ###
@@ -27,5 +26,9 @@ python visualize.py vit/config/vit_config.yml
 
 ### Qualitative Results
 > Classification results on the Tiny ImageNet test set. Left: original image, Right: attention map.
->
+
+<div align="center">
+
 ![](media/vit_pred_attn.gif)
+
+</div>
