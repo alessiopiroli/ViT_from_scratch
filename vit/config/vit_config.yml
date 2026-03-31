@@ -1,19 +1,30 @@
 DATA:
   root_dir: "data"
+  dataset: "cifrar10"
 
 IMG:
-  img_size: 224
-  patch_size: 16
+  img_size: 64
+  patch_size: 8
 
 MODEL:
   IMG_PATCHER:
-    latent_dim: 512
+    latent_dim: 256
   ViT_ENCODER:
     n_heads: 4
   ViT:
-    n_encoders: 12
+    n_encoders: 4
   HEAD:
-    n_classes: 37
+    n_classes: 10
 
 TRAINING:
-  batch_size: 4
+  batch_size: 64
+  n_epochs: 100
+  lr: 1e-3
+
+LOGGING:
+  logging_dir: "artifacts/logs"
+  media_dir: "media"
+
+VISUALIZATION:
+  model_path: "model/vit_model.pth"
+  vis_size: 250
