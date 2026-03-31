@@ -27,8 +27,6 @@ python visualize.py vit/config/vit_config.yml
 ### Qualitative Results
 > Classification results on the Tiny ImageNet test set. Left: original image, Right: attention map.
 
-<div align="center">
-
-![](media/vit_pred_attn.gif)
-
-</div>
+<p align="center">
+  <img src="media/vit_pred_attn.gif" alt="Classification results on the Tiny ImageNet test set. Left: original image, Right: attention map.">
+</p>
