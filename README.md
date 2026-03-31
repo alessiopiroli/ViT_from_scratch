@@ -30,3 +30,10 @@ python visualize.py vit/config/vit_config.yml
 <p align="center">
   <img src="media/vit_pred_attn.gif" alt="Classification results on the Tiny ImageNet test set. Left: original image, Right: attention map.">
 </p>
+
+> Qualitative results on a video.
+Left: original, Right: Attention map
+
+<p align="center">
+  <img src="media/attn.gif" alt="Qualitative results on a video. Left: original, Right: Attention map">
+</p>
