@@ -13,8 +13,8 @@ class ImagePatcher(nn.Module):
 
         self.unfold = nn.Unfold(kernel_size=self.cfg.IMG.patch_size, stride=self.cfg.IMG.patch_size)
         self.linear_proj = nn.Linear(self.lin_in, self.lin_out)
-        self.class_token = nn.Parameter(torch.zeros(1, 1, self.lin_out))
-        self.pos_embedding = nn.Parameter(torch.zeros(1, self.n_patches + 1, self.lin_out))
+        self.class_token = nn.Parameter(torch.randn(1, 1, self.lin_out) * 0.02)
+        self.pos_embedding = nn.Parameter(torch.randn(1, self.n_patches + 1, self.lin_out) * 0.02)
 
     def forward(self, x):
         x = self.unfold(x).transpose(-1, -2)
@@ -56,7 +56,8 @@ class ViTEncoder(nn.Module):
         self.n_heads = self.cfg.MODEL.ViT_ENCODER.n_heads
         self.latent_dim = self.cfg.MODEL.IMG_PATCHER.latent_dim
 
-        self.layer_norm = nn.LayerNorm(self.latent_dim)
+        self.layer_norm1 = nn.LayerNorm(self.latent_dim)
+        self.layer_norm2 = nn.LayerNorm(self.latent_dim)
         self.attn_heads = nn.ModuleList([AttentionHead(self.cfg) for _ in range(self.n_heads)])
         self.attn_proj = nn.Linear(self.latent_dim, self.latent_dim)
         self.mlp = nn.Sequential(
@@ -64,10 +65,10 @@ class ViTEncoder(nn.Module):
         )
 
     def forward(self, x):
-        x_norm = self.layer_norm(x)
+        x_norm = self.layer_norm1(x)
         attn_out = torch.cat([head(x_norm) for head in self.attn_heads], dim=-1)
         x = self.attn_proj(attn_out) + x
-        x_norm = self.layer_norm(x)
+        x_norm = self.layer_norm2(x)
         x = self.mlp(x_norm) + x
 
         return x
@@ -97,3 +98,27 @@ class ViT(nn.Module):
         x = self.head(x)
 
         return x
+
+
+class ViTAttnExtract(nn.Module):
+    def __init__(self, vit_model):
+        super().__init__()
+
+        self.image_patcher = vit_model.image_patcher
+        self.encoders = vit_model.encoders
+
+    def forward(self, x):
+        x = self.image_patcher(x)
+        for encoder in self.encoders[:-1]:
+            x = encoder(x)
+        last_encoder = self.encoders[-1]
+        x_norm = last_encoder.layer_norm1(x)
+        attention_maps = []
+        for attn_head in last_encoder.attn_heads:
+            Q = attn_head.linear_query(x_norm)
+            K = attn_head.linear_key(x_norm)
+            attention = (Q @ torch.transpose(K, dim0=-2, dim1=-1)) / (Q.shape[-1] ** 0.5)
+            attention = torch.softmax(attention, -1)
+            attention_maps.append(attention)
+
+        return torch.stack(attention_maps, dim=1)
